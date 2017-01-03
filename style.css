@@ -1,0 +1,15 @@
+#filas {
+    background-color: chocolate;
+    display: flex;
+    flex-direction: row;
+}
+
+#fila-a {
+    background-color: lavenderblush;
+    width: 50%;
+}
+
+#fila-b {
+    background-color: mintcream;
+    width: 50%;
+}

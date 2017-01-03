@@ -1,12 +1,12 @@
-const ClientClass = Object.freeze( {A: 0, B: 1} );
+const CLIENT_CLASS = Object.freeze( {A: 1, B: 2} );
 
 function Client(clientClass, serviceTime) {
-	this.class = clientClass;
+	this.clientClass = clientClass;
 	this.serviceTime = serviceTime;
 	this.residualServiceTime = serviceTime;
 	this.arrivalTime = 0.0;
 
-	this.registerArrival = function(arrivalTime) {
+	this.setArrivalTime = function(arrivalTime) {
 		this.arrivalTime = arrivalTime;
 	}
 }

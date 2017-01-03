@@ -1,5 +1,6 @@
-const TypeEnum = Object.freeze( {FCFS: 0, LCFS: 1} );
-const queueDiv = document.getElementById('fila');
+const QUEUE_POLICY = Object.freeze( {FCFS: 0, LCFS: 1} );
+const queueADiv = document.getElementById('fila-a');
+const queueBDiv = document.getElementById('fila-b');
 const serverDiv = document.getElementById('server');
 
 const avgSystemTimeDiv     = document.getElementById('avg-system-time');
@@ -10,9 +11,9 @@ const avgClientsInQueueDiv = document.getElementById('avg-clients-queue');
 
 
 function QueueSimulator() {
-	this.type = TypeEnum.LCFS;
+	this.type = QUEUE_POLICY.FCFS;
 	this.isPreemptive = true;
-	this.hasPriority  = false;
+	this.hasPriority  = true;
 
 	this.arrivalsGeneratorA;
 	this.arrivalsGeneratorB;
@@ -21,10 +22,10 @@ function QueueSimulator() {
 	this.queueB = [];
 
 	this.classAServiceTime = 1/5;
-	this.classBServiceTime = 1/60;
+	this.classBServiceTime = 1/5;
 
-	this.classAArrivalTime = 1/6;
-	this.classBArrivalTime = 1/60;
+	this.classAArrivalTime = 1/8;
+	this.classBArrivalTime = 1/12;
 
 	this.totalWaitTime = 0.0;
 	this.totalSystemTime = 0.0;
@@ -46,8 +47,11 @@ function QueueSimulator() {
 	this.countOfBusyTimes = 0;
 
 	this.start = function(){
-		this.arrivalsGeneratorA = new ArrivalsGenerator(this.classAArrivalTime, ClientClass.A, this.classAServiceTime, this);
+		this.arrivalsGeneratorA = new ArrivalsGenerator(this.classAArrivalTime, CLIENT_CLASS.A, this.classAServiceTime, this);
 		this.arrivalsGeneratorA.start();
+
+		this.arrivalsGeneratorB = new ArrivalsGenerator(this.classBArrivalTime, CLIENT_CLASS.B, this.classBServiceTime, this);
+		this.arrivalsGeneratorB.start();
 
 		setInterval(this.processClient.bind(this), 1);
 	}
@@ -56,71 +60,119 @@ function QueueSimulator() {
 		
 		this.totalArrivals ++;
 
-		this.totalClientsInQueue += this.queueA.length;
+		this.totalClientsInQueue += this.queueA.length + this.queueB.length;
 
 		this.calculatePendingService();
 		
-		if(!this.isAttending && this.queueA.length == 0)
+		//begining of a busy time
+		if(!this.isAttending && this.queueA.length == 0 && this.queueB.length == 0)
 		{
 			this.busyTimeStartTime = Date.now() / 1000;
 			this.enteredInBusyTime = true;
 			this.countOfBusyTimes ++;
 		}
 
-		if(this.isPreemptive)
+		if(this.currentClient == null)
 		{
-			if(this.currentClient != null)
-			{
-				this.queueA.push(this.currentClient);
-			}
 			this.currentClient = newClient;
 		}
 		else
 		{
-			this.queueA.push(newClient);
+			if(this.isPreemptive)
+			{
+				if(this.hasPriority && this.type == QUEUE_POLICY.FCFS)
+				{
+					if(this.currentClient.clientClass == CLIENT_CLASS.A)
+					{
+						if(newClient.clientClass == CLIENT_CLASS.A)
+						{
+							this.queueA.push(newClient);
+						}
+						if(newClient.clientClass == CLIENT_CLASS.B)
+						{
+							this.queueB.push(newClient);
+						}
+					}
+
+					if(this.currentClient.clientClass == CLIENT_CLASS.B)
+					{
+						if(newClient.clientClass == CLIENT_CLASS.A)
+						{
+							this.queueB.splice(0, 0, this.currentClient);
+							this.currentClient = newClient;
+						}
+						if(newClient.clientClass == CLIENT_CLASS.B)
+						{
+							this.queueB.push(newClient);
+						}
+					}
+				}
+
+				if(!this.hasPriority && this.type == QUEUE_POLICY.LCFS)
+				{
+					this.queueA.push(this.currentClient);
+					this.currentClient = newClient;
+				}
+			}
+			else
+			{
+				if(this.hasPriority)
+				{
+					if(newClient.clientClass == CLIENT_CLASS.A)
+					{
+						this.queueA.push(newClient);
+					}
+					if(newClient.clientClass == CLIENT_CLASS.B)
+					{
+						this.queueB.push(newClient);					
+					}
+				}
+				else
+				{
+					this.queueA.push(newClient);
+				}
+			}
 		}
 
-		newClient.registerArrival( Date.now()/1000 );
+		newClient.setArrivalTime( Date.now()/1000 );
 	}
 
 
 	this.processClient = function() {
+		var now = Date.now()/1000;
+		var deltaTime = now - this.lastServiceTime;
+		this.lastServiceTime = now;
+
 		this.updateQueueView();
 
 		if(!this.isAttending)
 		{
-			if(this.queueA.length > 0)
+			if(this.currentClient != null)
 			{
-				this.currentClient = this.getNextClient();
-
-				this.lastServiceTime = Date.now()/1000;
 				this.isAttending = true;
-				console.log("got client!");
 			}
 			else
 			{
 				console.log("Waiting new client...");
 				if(this.enteredInBusyTime)
 				{
-					this.totalBusyTime += Date.now()/1000 - this.busyTimeStartTime;
+					this.totalBusyTime += now - this.busyTimeStartTime;
 					this.enteredInBusyTime = false;
 				}
 			}
 		}
-		else
+		else //Processing client
 		{
-			var now = Date.now()/1000;
-			var deltaTime = now - this.lastServiceTime;
-			this.lastServiceTime = now;
-
 			this.currentClient.residualServiceTime -= deltaTime;
 
 			console.log("Working...");
 			this.updateServerView();
 			this.updateAverageWaitTimeInQueue();
+
 			if(this.currentClient.residualServiceTime <= 0)
 			{
-				var clientSystemTime = Date.now()/1000 - this.currentClient.arrivalTime;
+				console.log("NOW E ARRIVALTIME:   " + now + "    " + this.currentClient.arrivalTime)
+				var clientSystemTime = now - this.currentClient.arrivalTime;
 				var clientWaitTime = clientSystemTime - this.currentClient.serviceTime;
 				
 				this.numOfServedClients++;
@@ -130,17 +182,29 @@ function QueueSimulator() {
 				
 				console.log(clientSystemTime + "  " + clientWaitTime + "  " + this.numOfServedClients);
 
-				this.isAttending = false;
+				if(this.queueA.length > 0 || this.queueB.length > 0)
+				{
+					this.currentClient = this.getNextClient();
+				}
+				else
+				{
+					this.currentClient = null;
+					this.isAttending = false;
+				}
 			}
 		}
 	}
 
 	this.getNextClient = function() {
-		if(this.type == TypeEnum.FCFS)
+		if(this.type == QUEUE_POLICY.FCFS)
 		{
-			return this.queueA.splice(0, 1)[0];
+			if(this.queueA.length > 0){
+				return this.queueA.splice(0, 1)[0];
+			}else{
+				return this.queueB.splice(0, 1)[0];
+			}
 		}
-		else
+		if(this.type == QUEUE_POLICY.LCFS)
 		{
 			return this.queueA.pop();
 		}
@@ -153,28 +217,39 @@ function QueueSimulator() {
 		for(var clientNum in this.queueA) {
 			this.totalPendingService += this.queueA[clientNum].residualServiceTime;
 		}
+
+		for(var clientNum in this.queueB) {
+			this.totalPendingService += this.queueB[clientNum].residualServiceTime;
+		}
 	}
 
 	this.updateAverageWaitTimeInQueue = function(){
-		avgSystemTimeDiv.innerHTML 		= "Tempo no Sistema   | E[T] = " + this.totalSystemTime/this.numOfServedClients;
-		avgWaitTimeDiv.innerHTML 		= "Tempo na Fila      | E[W] = " + this.totalWaitTime/this.numOfServedClients;
-		avgPendingServiceDiv.innerHTML 	= "Trabalho Pendente  | E[U] = " + this.totalPendingService/this.totalArrivals;
-		avgClientsInQueueDiv.innerHTML 	= "Número de Clientes | E[N] = " + this.totalClientsInQueue/this.totalArrivals;
-		avgBusyTimeDiv.innerHTML 		= "Período Ocupado    | E[B] = " + this.totalBusyTime/this.countOfBusyTimes;
+		avgSystemTimeDiv.innerHTML 		= "Tempo no Sistema   | E[T] = " + (this.totalSystemTime/this.numOfServedClients).toFixed(3);
+		avgWaitTimeDiv.innerHTML 		= "Tempo na Fila      | E[W] = " + (this.totalWaitTime/this.numOfServedClients).toFixed(3);
+		avgPendingServiceDiv.innerHTML 	= "Trabalho Pendente  | E[U] = " + (this.totalPendingService/this.totalArrivals).toFixed(3);
+		avgClientsInQueueDiv.innerHTML 	= "Número de Clientes | E[N] = " + (this.totalClientsInQueue/this.totalArrivals).toFixed(3);
+		avgBusyTimeDiv.innerHTML 		= "Período Ocupado    | E[B] = " + (this.totalBusyTime/this.countOfBusyTimes).toFixed(3);
 	}
 
 	this.updateQueueView = function(){
-		queueDiv.innerHTML = '';
+		queueADiv.innerHTML = '';
+		queueBDiv.innerHTML = '';
 
 		for(var clientNum in this.queueA) {
 			var clientDiv = document.createElement('div');
-			clientDiv.innerHTML = this.queueA[clientNum].residualServiceTime;
-			queueDiv.append(clientDiv);
+			clientDiv.innerHTML = this.queueA[clientNum].clientClass + " | " + this.queueA[clientNum].residualServiceTime;
+			queueADiv.append(clientDiv);
+		}
+
+		for(var clientNum in this.queueB) {
+			var clientDiv = document.createElement('div');
+			clientDiv.innerHTML = this.queueB[clientNum].clientClass + " | " + this.queueB[clientNum].residualServiceTime;
+			queueBDiv.append(clientDiv);
 		}
 	}
 
 	this.updateServerView = function(){		
-		serverDiv.innerHTML = "" + this.currentClient.residualServiceTime;
+		serverDiv.innerHTML = "" + this.currentClient.clientClass + " | " + this.currentClient.residualServiceTime;
 	}
 }
 
