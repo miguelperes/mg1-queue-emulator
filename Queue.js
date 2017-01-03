@@ -10,8 +10,8 @@ const avgClientsInQueueDiv = document.getElementById('avg-clients-queue');
 
 
 function QueueSimulator() {
-	this.type = TypeEnum.FCFS;
-	this.isPreemptive = false;
+	this.type = TypeEnum.LCFS;
+	this.isPreemptive = true;
 	this.hasPriority  = false;
 
 	this.arrivalsGeneratorA;
@@ -58,13 +58,8 @@ function QueueSimulator() {
 
 		this.totalClientsInQueue += this.queueA.length;
 
-		if(this.isAttending)
-			this.totalPendingService += this.currentClient.residualServiceTime;
+		this.calculatePendingService();
 		
-		for(var clientNum in this.queueA) {
-			this.totalPendingService += this.queueA[clientNum].residualServiceTime;
-		}
-
 		if(!this.isAttending && this.queueA.length == 0)
 		{
 			this.busyTimeStartTime = Date.now() / 1000;
@@ -72,7 +67,19 @@ function QueueSimulator() {
 			this.countOfBusyTimes ++;
 		}
 
-		this.queueA.push(newClient);
+		if(this.isPreemptive)
+		{
+			if(this.currentClient != null)
+			{
+				this.queueA.push(this.currentClient);
+			}
+			this.currentClient = newClient;
+		}
+		else
+		{
+			this.queueA.push(newClient);
+		}
+
 		newClient.registerArrival( Date.now()/1000 );
 	}
 
@@ -105,6 +112,7 @@ function QueueSimulator() {
 			var now = Date.now()/1000;
 			var deltaTime = now - this.lastServiceTime;
 			this.lastServiceTime = now;
+
 			this.currentClient.residualServiceTime -= deltaTime;
 
 			console.log("Working...");
@@ -128,15 +136,31 @@ function QueueSimulator() {
 	}
 
 	this.getNextClient = function() {
-		return this.queueA.splice(0, 1)[0];
+		if(this.type == TypeEnum.FCFS)
+		{
+			return this.queueA.splice(0, 1)[0];
+		}
+		else
+		{
+			return this.queueA.pop();
+		}
+	}
+
+	this.calculatePendingService = function(){
+		if(this.isAttending)
+			this.totalPendingService += this.currentClient.residualServiceTime;
+		
+		for(var clientNum in this.queueA) {
+			this.totalPendingService += this.queueA[clientNum].residualServiceTime;
+		}
 	}
 
 	this.updateAverageWaitTimeInQueue = function(){
-		avgSystemTimeDiv.innerHTML 		= "E[T] = " + this.totalSystemTime/this.numOfServedClients;
-		avgWaitTimeDiv.innerHTML 		= "E[W] = " + this.totalWaitTime/this.numOfServedClients;
-		avgPendingServiceDiv.innerHTML 	= "E[U] = " + this.totalPendingService/this.totalArrivals;
-		avgClientsInQueueDiv.innerHTML 	= "E[N] = " + this.totalClientsInQueue/this.totalArrivals;
-		avgBusyTimeDiv.innerHTML 		= "E[B] = " + this.totalBusyTime/this.countOfBusyTimes;
+		avgSystemTimeDiv.innerHTML 		= "Tempo no Sistema   | E[T] = " + this.totalSystemTime/this.numOfServedClients;
+		avgWaitTimeDiv.innerHTML 		= "Tempo na Fila      | E[W] = " + this.totalWaitTime/this.numOfServedClients;
+		avgPendingServiceDiv.innerHTML 	= "Trabalho Pendente  | E[U] = " + this.totalPendingService/this.totalArrivals;
+		avgClientsInQueueDiv.innerHTML 	= "Número de Clientes | E[N] = " + this.totalClientsInQueue/this.totalArrivals;
+		avgBusyTimeDiv.innerHTML 		= "Período Ocupado    | E[B] = " + this.totalBusyTime/this.countOfBusyTimes;
 	}
 
 	this.updateQueueView = function(){
@@ -144,7 +168,7 @@ function QueueSimulator() {
 
 		for(var clientNum in this.queueA) {
 			var clientDiv = document.createElement('div');
-			clientDiv.innerHTML = this.queueA[clientNum].serviceTime;
+			clientDiv.innerHTML = this.queueA[clientNum].residualServiceTime;
 			queueDiv.append(clientDiv);
 		}
 	}
