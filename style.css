@@ -1,15 +1,23 @@
 #filas {
-    background-color: chocolate;
+	background-color: lavenderblush;
     display: flex;
     flex-direction: row;
+    height: 300px;
+    overflow-y: auto;
 }
 
 #fila-a {
-    background-color: lavenderblush;
+    // background-color: lavenderblush;
     width: 50%;
+    height: 100%;
 }
 
 #fila-b {
-    background-color: mintcream;
+    // background-color: mintcream;
     width: 50%;
+    height: 100%;
+}
+
+.chartDiv {
+	width: 40%;
 }

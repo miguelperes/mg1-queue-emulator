@@ -6,20 +6,41 @@
 </head>
 
 <body>
+	<div class="menu">
+		&lambda;1 : <input id="lambda-1" type="text" value="1/5"></p>
+		&lambda;2 : <input id="lambda-2" type="text" value="1/5"></p>
+		&mu;1 : <input id="mu-1" type="text" value="1/12"></p>
+		&mu;2 : <input id="mu-2" type="text" value="1/12"></p>
+		<hr />
+		<button id='start-button'>Start</button><br/><br/>
+		<hr />
+		<button id='policy1'>FCFS sem distinção</button><br/>
+		<button id='policy2'>LCFS sem preempção sem distinção de classes</button><br/>
+		<button id='policy3'>LCFS com preempção e sem distinção de classes</button><br/>
+		<button id='policy4'>FCFS sem preempção e com classe 1 prioritária</button><br/>
+		<button id='policy5'>FCFS com preempção e com classe 1 prioritária</button><br/>
+	</div>
 	<div id='avg-system-time'></div>
 	<div id='avg-wait-time'></div>
 	<div id='avg-pending-service'></div>
 	<div id='avg-busy-time'></div>
 	<div id='avg-clients-queue'></div>
 	<hr>
+	Servidor:
 	<div id='server'></div>
 	<hr>
+	Filas:
 	<div id='filas'>
 		<div id='fila-a'></div>
 		<div id='fila-b'></div>
 	</div>
+	<div class='chartDiv'>
+		<canvas id="myChart" width="200" height="200"></canvas>
+	</div>
 </body>
 
+<script src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js'></script>
+<script src='ChartConfig.js'></script>
 <script src='PoissonGenerator.js'></script>
 <script src='ArrivalsGenerator.js'></script>
 <script src='Client.js'></script>
