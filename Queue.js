@@ -12,8 +12,8 @@ const avgClientsInQueueDiv = document.getElementById('avg-clients-queue');
 
 function QueueSimulator() {
 	this.type = QUEUE_POLICY.FCFS;
-	this.isPreemptive = true;
-	this.hasPriority  = true;
+	this.isPreemptive = false;
+	this.hasPriority  = false;
 
 	this.arrivalsGeneratorA;
 	this.arrivalsGeneratorB;
@@ -24,7 +24,7 @@ function QueueSimulator() {
 	this.classAServiceTime = 1/5;
 	this.classBServiceTime = 1/5;
 
-	this.classAArrivalTime = 1/8;
+	this.classAArrivalTime = 1/12;
 	this.classBArrivalTime = 1/12;
 
 	this.totalWaitTime = 0.0;
@@ -63,6 +63,7 @@ function QueueSimulator() {
 		this.totalClientsInQueue += this.queueA.length + this.queueB.length;
 
 		this.calculatePendingService();
+		this.updateAverageWaitTimeInQueue();
 		
 		//begining of a busy time
 		if(!this.isAttending && this.queueA.length == 0 && this.queueB.length == 0)
@@ -167,7 +168,6 @@ function QueueSimulator() {
 
 			console.log("Working...");
 			this.updateServerView();
-			this.updateAverageWaitTimeInQueue();
 
 			if(this.currentClient.residualServiceTime <= 0)
 			{
@@ -224,11 +224,28 @@ function QueueSimulator() {
 	}
 
 	this.updateAverageWaitTimeInQueue = function(){
-		avgSystemTimeDiv.innerHTML 		= "Tempo no Sistema   | E[T] = " + (this.totalSystemTime/this.numOfServedClients).toFixed(3);
-		avgWaitTimeDiv.innerHTML 		= "Tempo na Fila      | E[W] = " + (this.totalWaitTime/this.numOfServedClients).toFixed(3);
-		avgPendingServiceDiv.innerHTML 	= "Trabalho Pendente  | E[U] = " + (this.totalPendingService/this.totalArrivals).toFixed(3);
-		avgClientsInQueueDiv.innerHTML 	= "Número de Clientes | E[N] = " + (this.totalClientsInQueue/this.totalArrivals).toFixed(3);
-		avgBusyTimeDiv.innerHTML 		= "Período Ocupado    | E[B] = " + (this.totalBusyTime/this.countOfBusyTimes).toFixed(3);
+		var avgSystemTime = (this.totalSystemTime/this.numOfServedClients).toFixed(3);
+		avgSystemTimeDiv.innerHTML 		= "Tempo no Sistema   | E[T] = " + avgSystemTime;
+		this.updateChart(0, avgSystemTime);
+
+		var avgWaitTime = (this.totalWaitTime/this.numOfServedClients).toFixed(3);
+		avgWaitTimeDiv.innerHTML 		= "Tempo na Fila      | E[W] = " + avgWaitTime;
+		this.updateChart(1, avgWaitTime);
+
+		var avgPendingService = (this.totalPendingService/this.totalArrivals).toFixed(3);
+		avgPendingServiceDiv.innerHTML 	= "Trabalho Pendente  | E[U] = " + avgPendingService;
+		this.updateChart(2, avgPendingService);
+
+		var avgClientsInQueue = (this.totalClientsInQueue/this.totalArrivals).toFixed(3);
+		avgClientsInQueueDiv.innerHTML 	= "Número de Clientes | E[N] = " + avgClientsInQueue;
+		this.updateChart(3, avgClientsInQueue);
+
+		var avgBusyTime = (this.totalBusyTime/this.countOfBusyTimes).toFixed(3);
+		avgBusyTimeDiv.innerHTML 		= "Período Ocupado    | E[B] = " + avgBusyTime;
+		this.updateChart(4, avgBusyTime);
+
+		chart.data.labels.push("");
+		chart.update();
 	}
 
 	this.updateQueueView = function(){
@@ -248,8 +265,20 @@ function QueueSimulator() {
 		}
 	}
 
+	this.updateChart = function(datasetIndex, newData) {
+		const dataLength = chart.config.data.datasets[datasetIndex].data.length;
+
+		if(newData != "NaN"  ) {
+			chart.config.data.datasets[datasetIndex].data.push(newData);
+		}
+		else {
+			chart.config.data.datasets[datasetIndex].data.push(0);	
+		}
+
+	}
+
 	this.updateServerView = function(){		
-		serverDiv.innerHTML = "" + this.currentClient.clientClass + " | " + this.currentClient.residualServiceTime;
+		serverDiv.innerHTML = "(" + this.currentClient.clientClass + ") " + this.currentClient.residualServiceTime;
 	}
 }
 
