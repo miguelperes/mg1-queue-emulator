@@ -1,3 +1,7 @@
+body {
+    background-color: #eceff1;
+}
+
 #filas {
 	background-color: lavenderblush;
     display: flex;
@@ -7,17 +11,25 @@
 }
 
 #fila-a {
-    // background-color: lavenderblush;
-    width: 50%;
-    height: 100%;
+    height: 50%;
+    overflow-y: auto;
 }
 
 #fila-b {
-    // background-color: mintcream;
-    width: 50%;
-    height: 100%;
+    height: 50%;
+    overflow-y: auto;
 }
 
-.chartDiv {
-	width: 40%;
+.my-chip {
+    display: flex !important;
+    margin: 0.82rem 0 0.656rem 0 !important;
+}
+
+.chartDiv { 
+  width: 100%;
+  height: 75%;
+}
+
+.simulator-container {
+    padding: 1%;
 }

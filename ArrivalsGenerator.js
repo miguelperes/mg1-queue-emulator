@@ -18,14 +18,14 @@ function ArrivalsGenerator(arrivalRate, clientClass, averageClientServiceTime, c
 	}
 
 	this.processNextArrival = function(ref) {
-		console.log('PROCESS NEXT ARRUVAK');
+		// console.log('PROCESS NEXT ARRIVAL');
 		var timeToNext = ref.nextArrival();
 		//console.log("processNextArrival - timeToNext: " + timeToNext);
 
 		if (!this.pause) {
 			var newClient = new Client(this.clientClass, PoissonGenerator.get(this.averageClientServiceTime));
 			this.callbackClass.addNewClient(newClient);
-			console.log("next arruival: " + timeToNext);
+			// console.log("next arrival: " + timeToNext);
 			setTimeout((function(){ref.processNextArrival(ref)}).bind(ref), timeToNext * 1000);
 		}
 	}
