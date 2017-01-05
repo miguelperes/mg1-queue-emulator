@@ -45,6 +45,10 @@ var chart = new Chart(ctx, {
         }]
     },
     options: {
+        width: 100,
+        height: 100,
+        maintainAspectRatio: false,
+        responsive: true,
         scales: {
             yAxes: [{
                 gridLines: {
@@ -52,7 +56,6 @@ var chart = new Chart(ctx, {
                 },
                 ticks: {
                     beginAtZero:true
-
                 }
             }], 
             xAxes: [{

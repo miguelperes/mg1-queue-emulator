@@ -1,41 +1,116 @@
 <html>
 
 <head>
-<meta charset="UTF-8">
-<link rel="stylesheet" type="text/css" href="style.css">
+	<meta charset="UTF-8">
+	<link rel="stylesheet" type="text/css" href="style.css">
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.8/css/materialize.min.css">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.8/js/materialize.min.js"></script>
 </head>
 
 <body>
-	<div class="menu">
-		&lambda;1 : <input id="lambda-1" type="text" value="1/5"></p>
-		&lambda;2 : <input id="lambda-2" type="text" value="1/5"></p>
-		&mu;1 : <input id="mu-1" type="text" value="1/12"></p>
-		&mu;2 : <input id="mu-2" type="text" value="1/12"></p>
-		<hr />
-		<button id='start-button'>Start</button><br/><br/>
-		<hr />
-		<button id='policy1'>FCFS sem distinção</button><br/>
-		<button id='policy2'>LCFS sem preempção sem distinção de classes</button><br/>
-		<button id='policy3'>LCFS com preempção e sem distinção de classes</button><br/>
-		<button id='policy4'>FCFS sem preempção e com classe 1 prioritária</button><br/>
-		<button id='policy5'>FCFS com preempção e com classe 1 prioritária</button><br/>
-	</div>
-	<div id='avg-system-time'></div>
-	<div id='avg-wait-time'></div>
-	<div id='avg-pending-service'></div>
-	<div id='avg-busy-time'></div>
-	<div id='avg-clients-queue'></div>
-	<hr>
-	Servidor:
-	<div id='server'></div>
-	<hr>
-	Filas:
-	<div id='filas'>
-		<div id='fila-a'></div>
-		<div id='fila-b'></div>
-	</div>
-	<div class='chartDiv'>
-		<canvas id="myChart" width="200" height="200"></canvas>
+	<div class="simulator-container">
+		<div class="menu row s12">
+			<div class="col s12">
+				<div class="card-panel teal lighten-2 col s12">
+					<h2>M/G/1 Simulator</h2>
+				</div>
+			</div>
+		</div>
+		<div class="menu row s12">
+			<div class="col s6">
+				<div class="row s12">
+					<div class="input-field col s6">
+						<input id="lambda-1" type="text" value="1/12">
+						<label for="lambda-1"> &lambda;1 </label>
+					</div>
+					<div class="input-field col s6">
+						<input id="lambda-2" type="text" value="1/12">
+						<label for="lambda-2"> &lambda;2 </label>
+					</div>
+					<div class="input-field col s6">
+						<input id="mu-1" type="text" value="1/5">
+						<label for="mu-1"> &mu;1 </label>
+					</div>
+					<div class="input-field col s6">
+						<input id="mu-2" type="text" value="1/5">
+						<label for="mu-2"> &mu;2 </label>
+					</div>
+				</div>
+				<div class="row s12">
+					<div class="row">
+						<div class="col s6">
+						<button class="waves-effect waves-light btn col s12" id='policy1'>FCFS sem distinção</button><br/>
+						</div>
+						<div class="col s6">
+						<button class="waves-effect waves-light btn col s12" id='policy2'>LCFS sem preempção sem distinção de classes</button><br/>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col s6">
+						<button class="waves-effect waves-light btn col s12" id='policy3'>LCFS com preempção e sem distinção de classes</button><br/>
+						</div>
+						<div class="col s6">
+						<button class="waves-effect waves-light btn col s12" id='policy4'>FCFS sem preempção e com classe 1 prioritária</button><br/>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col s6">
+						<button class="waves-effect waves-light btn col s12" id='policy5'>FCFS com preempção e com classe 1 prioritária</button><br/>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col s6">
+				<div class="row s12">
+					<div class="collection">
+						<div class="collection-item">Tempo no Sistema | E[T]<a class="secondary-content" id='avg-system-time'>0.0</a></div>
+						<div class="collection-item">Tempo na Fila | E[W] <a class="secondary-content" id='avg-wait-time'>0.0</a></div>
+						<div class="collection-item">Trabalho Pendente | E[U] <a class="secondary-content" id='avg-pending-service'>0.0</a></div>
+						<div class="collection-item">Número de Clientes | E[N] <a class="secondary-content" id='avg-busy-time'>0.0</a></div>
+						<div class="collection-item">Período Ocupado | E[B] <a class="secondary-content" id='avg-clients-queue'>0.0</a></div>
+					</div>
+				</div>
+				<div class="row s12">
+					<div class="col s12">
+						<button class="waves-effect waves-light btn col s12" id='start-button'>Start</button><br/><br/>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="row s12">
+			<div class="col s6">
+				<div class="card-panel teal lighten-2 col s12">
+					<div class="col s6"><h5>Servidor</h5></div>
+					<div class="col s6" layout-align="center center" id='server'>
+						<div class="chip row my-chip" id='server-client'>Empty</div>
+					</div>
+				</div>
+
+				<div class="card-panel teal lighten-3 col s6">
+					<div class="col s12"><h5>Fila 1</h5></div>
+				</div>
+				<div class="card-panel teal lighten-3 col s6">
+					<div class="col s6"><h5>Fila 2</h5></div>
+				</div>
+
+				<div class="card-panel teal lighten-2 col s6">
+					<div id='fila-a'></div>
+				</div>
+				<div class="card-panel teal lighten-2 col s6">
+					<div id='fila-b'></div>
+				</div>
+			</div>
+			<div class="col s6">
+				<div class='chartDiv row'>
+					<canvas id="myChart"></canvas>
+				</div>
+			</div>
+		</div>
 	</div>
 </body>
 

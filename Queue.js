@@ -1,7 +1,7 @@
 const QUEUE_POLICY = Object.freeze( {FCFS: 0, LCFS: 1} );
 const queueADiv = document.getElementById('fila-a');
 const queueBDiv = document.getElementById('fila-b');
-const serverDiv = document.getElementById('server');
+const serverDiv = document.getElementById('server-client');
 
 const avgSystemTimeDiv     = document.getElementById('avg-system-time');
 const avgWaitTimeDiv       = document.getElementById('avg-wait-time');
@@ -171,7 +171,7 @@ function QueueSimulator() {
 
 			if(this.currentClient.residualServiceTime <= 0)
 			{
-				console.log("NOW E ARRIVALTIME:   " + now + "    " + this.currentClient.arrivalTime)
+				// console.log("NOW E ARRIVALTIME:   " + now + "    " + this.currentClient.arrivalTime)
 				var clientSystemTime = now - this.currentClient.arrivalTime;
 				var clientWaitTime = clientSystemTime - this.currentClient.serviceTime;
 				
@@ -180,7 +180,7 @@ function QueueSimulator() {
 				this.totalSystemTime += clientSystemTime;
 				this.totalWaitTime += clientWaitTime;
 				
-				console.log(clientSystemTime + "  " + clientWaitTime + "  " + this.numOfServedClients);
+				// console.log(clientSystemTime + "  " + clientWaitTime + "  " + this.numOfServedClients);
 
 				if(this.queueA.length > 0 || this.queueB.length > 0)
 				{
@@ -224,24 +224,24 @@ function QueueSimulator() {
 	}
 
 	this.updateAverageWaitTimeInQueue = function(){
-		var avgSystemTime = (this.totalSystemTime/this.numOfServedClients).toFixed(3);
-		avgSystemTimeDiv.innerHTML 		= "Tempo no Sistema   | E[T] = " + avgSystemTime;
+		var avgSystemTime = (this.totalSystemTime/this.numOfServedClients || 0).toFixed(3);
+		avgSystemTimeDiv.innerHTML = "" + avgSystemTime;
 		this.updateChart(0, avgSystemTime);
 
-		var avgWaitTime = (this.totalWaitTime/this.numOfServedClients).toFixed(3);
-		avgWaitTimeDiv.innerHTML 		= "Tempo na Fila      | E[W] = " + avgWaitTime;
+		var avgWaitTime = (this.totalWaitTime/this.numOfServedClients || 0).toFixed(3);
+		avgWaitTimeDiv.innerHTML = "" + avgWaitTime;
 		this.updateChart(1, avgWaitTime);
 
-		var avgPendingService = (this.totalPendingService/this.totalArrivals).toFixed(3);
-		avgPendingServiceDiv.innerHTML 	= "Trabalho Pendente  | E[U] = " + avgPendingService;
+		var avgPendingService = (this.totalPendingService/this.totalArrivals || 0).toFixed(3);
+		avgPendingServiceDiv.innerHTML = " " + avgPendingService;
 		this.updateChart(2, avgPendingService);
 
-		var avgClientsInQueue = (this.totalClientsInQueue/this.totalArrivals).toFixed(3);
-		avgClientsInQueueDiv.innerHTML 	= "Número de Clientes | E[N] = " + avgClientsInQueue;
+		var avgClientsInQueue = (this.totalClientsInQueue/this.totalArrivals || 0).toFixed(3);
+		avgClientsInQueueDiv.innerHTML = "" + avgClientsInQueue;
 		this.updateChart(3, avgClientsInQueue);
 
-		var avgBusyTime = (this.totalBusyTime/this.countOfBusyTimes).toFixed(3);
-		avgBusyTimeDiv.innerHTML 		= "Período Ocupado    | E[B] = " + avgBusyTime;
+		var avgBusyTime = (this.totalBusyTime/this.countOfBusyTimes || 0).toFixed(3);
+		avgBusyTimeDiv.innerHTML = "" + avgBusyTime;
 		this.updateChart(4, avgBusyTime);
 
 		chart.data.labels.push("");
@@ -254,13 +254,33 @@ function QueueSimulator() {
 
 		for(var clientNum in this.queueA) {
 			var clientDiv = document.createElement('div');
-			clientDiv.innerHTML = this.queueA[clientNum].clientClass + " | " + this.queueA[clientNum].residualServiceTime;
+			clientDiv.className += " chip row my-chip";
+
+			var img = document.createElement('img');
+			if(this.queueA[clientNum].clientClass == CLIENT_CLASS.A)
+				img.src = "./images/number1.png";
+			if(this.queueA[clientNum].clientClass == CLIENT_CLASS.B)
+				img.src = "./images/number2.png";
+			img.alt = "Contact Person";
+			clientDiv.append(img);
+
+			clientDiv.append((this.queueA[clientNum].residualServiceTime).toFixed(5));
 			queueADiv.append(clientDiv);
 		}
 
 		for(var clientNum in this.queueB) {
 			var clientDiv = document.createElement('div');
-			clientDiv.innerHTML = this.queueB[clientNum].clientClass + " | " + this.queueB[clientNum].residualServiceTime;
+			clientDiv.className += " chip row my-chip";
+
+			var img = document.createElement('img');
+			if(this.queueB[clientNum].clientClass == CLIENT_CLASS.A)
+				img.src = "./images/number1.png";
+			if(this.queueB[clientNum].clientClass == CLIENT_CLASS.B)
+				img.src = "./images/number2.png";
+			img.alt = "Contact Person";
+			clientDiv.append(img);
+
+			clientDiv.append((this.queueB[clientNum].residualServiceTime).toFixed(5));
 			queueBDiv.append(clientDiv);
 		}
 	}
@@ -277,8 +297,24 @@ function QueueSimulator() {
 
 	}
 
-	this.updateServerView = function(){		
-		serverDiv.innerHTML = "(" + this.currentClient.clientClass + ") " + this.currentClient.residualServiceTime;
+	this.updateServerView = function(){
+		serverDiv.innerHTML = '';
+
+		if(this.currentClient.residualServiceTime > 0.0){
+			var img = document.createElement('img');
+			if(this.currentClient.clientClass == CLIENT_CLASS.A)
+				img.src = "./images/number1.png";
+			if(this.currentClient.clientClass == CLIENT_CLASS.B)
+				img.src = "./images/number2.png";
+			img.alt = "Contact Person";
+			serverDiv.append(img);
+
+			serverDiv.append((this.currentClient.residualServiceTime).toFixed(5));
+		}
+		else
+		{
+			serverDiv.append("Empty");
+		}
 	}
 }
 
