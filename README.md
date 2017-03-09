@@ -1,1 +1,1 @@
-# MG1_Queue_Simulator
+# MG1 Queue Emulator
